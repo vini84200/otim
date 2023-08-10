@@ -16,35 +16,48 @@ fn main() -> io::Result<()> {
 	let mut min_vec = vec![std::i32::MAX; max_size];
 
 	//println!("max size: {}", max_size);
-
-	'found:
 	for value_in_iter in ordered.iter() {
 		let size = *value_in_iter;
 
 		let mut i = 0;
-		'willy:
+		'nextv:
 		while i < max_size {
-			//println!("size: {} < min_vec[i]: {}", size, min_vec[i]);
-			if size < min_vec[i] {
-				//println!("Tentanto encaixar valor: {} no indice {} ", size, i);
-				for i_seg in i..(i + size as usize){
-					if size >= min_vec[i_seg]{
-						i += i_seg;
-						continue 'willy; 
-					}
-				}
+			if let Some(offset) = collision_in_vec(size, i, &mut min_vec){
+				i = offset;
+			}else{
 				for s in 1..=size{
 					min_vec[i] = s;
 					i += 1;
 				}
-				//println!("{:?}", min_vec);
-				continue 'found;
-			}
-			i += 1;
+				break 'nextv;
+			};
 		}
 	}
-	println!("{:?}", min_vec);
-	println!("O valor guloso mínimo é: {}", min_vec.iter().rev().take_while(|x| **x == std::i32::MAX).count());
-	println!("o max size é: {}",max_size);
+	/* 
+	print!("[");
+	min_vec.iter()
+		.filter(|x| **x != std::i32::MAX)
+		.for_each(|v| print!("{}, ", v));
+	println!("]");
+	*/
+
+	println!("Valor Guloso: {}", min_vec.iter().filter(|x| **x != std::i32::MAX).count());
+	println!("Valor Máximo: {}", max_size);
 	Ok(())
+}
+
+
+fn collision_in_vec(block: i32, i: usize, min_vec: &mut Vec<i32>) -> Option<usize> {
+	//se o tam bloco é menor que o elemento no vetor de indice i
+	if block < min_vec[i] {
+		//calcula se pode colocar os demais valores
+		for i_seg in (i + 1)..(i + block as usize){
+			if block >= min_vec[i_seg]{
+				return Some(i_seg + 1)
+			}
+		}
+	}else{
+		return Some(i + 1)
+	}
+	None
 }
