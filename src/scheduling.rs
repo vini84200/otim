@@ -13,7 +13,7 @@ pub struct Scheduling {
 impl Scheduling {
     pub fn new(max_size: usize) -> Scheduling {
         Scheduling {
-            collisions: vec![Size::MAX; max_size as usize],
+            collisions: vec![Size::MAX; max_size],
             allocations: BTreeMap::new(),
             end_time: 0,
             max_size,
@@ -31,7 +31,7 @@ impl Scheduling {
                 let distance = start_other.abs_diff(start_block.to_owned()) as i32;
                 let min_size = size_first.min(size_other);
 
-                let is_valid = distance >= min_size.to_owned();
+                let is_valid = distance >= *min_size;
 
                 if !is_valid {
                     return false;
@@ -39,7 +39,7 @@ impl Scheduling {
             }
         }
 
-        return true;
+        true
     }
 
     fn insert_at(&mut self, pos: usize, size: Size) {
