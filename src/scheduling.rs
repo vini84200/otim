@@ -28,7 +28,7 @@ impl Scheduling {
                     found_eq = true;
                     continue;
                 }
-                let distance = start_other.abs_diff(start_block.to_owned()) as i32;
+                let distance = start_other.abs_diff(*start_block) as i32;
                 let min_size = size_first.min(size_other);
 
                 let is_valid = distance >= *min_size;
@@ -58,7 +58,6 @@ impl Scheduling {
 
     fn collision_in_vec(&self, block: Size, i: usize) -> Option<usize> {
         //se o tam bloco é menor que o elemento no vetor de indice i
-
         if block < self.collisions[i] {
             //calcula se pode colocar os demais valores
             for i_seg in (i + 1)..(i + block as usize) {
@@ -75,10 +74,10 @@ impl Scheduling {
     pub fn add(&mut self, block: &Size) -> Option<usize> {
         let mut pos = 0;
         while pos < self.max_size {
-            if let Some(next_pos) = self.collision_in_vec(block.to_owned(), pos) {
+            if let Some(next_pos) = self.collision_in_vec(*block, pos) {
                 pos = next_pos;
             } else {
-                self.insert_at(pos, block.to_owned());
+                self.insert_at(pos, *block);
                 return Some(pos);
             }
         }
@@ -98,22 +97,16 @@ impl From<Vec<Size>> for Scheduling {
     fn from(value: Vec<Size>) -> Self {
         let max_size = value.iter().sum::<i32>() as usize;
         let mut s = Scheduling::new(max_size);
-        value.iter().for_each(|v| {
-            s.add(v);
-        });
-
+        value.iter().for_each(|v| _ = s.add(v));
         s
     }
 }
 
 impl From<Vec<&Size>> for Scheduling {
     fn from(value: Vec<&Size>) -> Self {
-        let max_size: i32 = value.iter().map(|a| a.to_owned()).sum();
-        let mut s = Scheduling::new(max_size as usize);
-        value.iter().for_each(|v| {
-            s.add(v);
-        });
-
+        let max_size = value.iter().fold(0, |acc, v| acc + *v) as usize;
+        let mut s = Scheduling::new(max_size);
+        value.iter().for_each(|v| _ = s.add(v));
         s
     }
 }

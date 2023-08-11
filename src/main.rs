@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use rayon::prelude::*;
 use std::{io, time::Instant};
 
 use crate::{input_parser::InputParser, scheduling::Scheduling};
@@ -18,7 +17,7 @@ fn main() -> io::Result<()> {
     println!("Valor Guloso: {}", sched.get_end_time());
     println!("Valor Máximo: {}", sched.get_trivial_time());
     println!("Verificacao: {}", sched.verify());
-    let mut bestOne = sched;
+    let mut best_one = sched;
     let mut count: usize = 0;
 
     println!("Testando permutações:");
@@ -26,9 +25,9 @@ fn main() -> io::Result<()> {
         // println!("{:?}", perm);
         let sched = Scheduling::from(perm.to_owned());
         if sched.verify() {
-            if sched.get_end_time() < bestOne.get_end_time() {
+            if sched.get_end_time() < best_one.get_end_time() {
                 println!("NOVA Solução {} na iter {count}", sched.get_end_time());
-                bestOne = sched;
+                best_one = sched;
             }
         } else {
             panic!("Should be valid!! {:?}", sched);
@@ -36,7 +35,7 @@ fn main() -> io::Result<()> {
         if count % 100000 == 0 {
             println!("Iter. {}", count);
             if count % 1000000 == 0 {
-                println!("Best: {}", bestOne);
+                println!("Best: {}", best_one);
             }
         }
 
@@ -44,9 +43,9 @@ fn main() -> io::Result<()> {
     }
     let duration = now.elapsed();
 
-    println!("Final one: {}", bestOne);
+    println!("Final one: {}", best_one);
     println!("Total de iter. {count}");
     println!("Tempo {:?}", duration);
-    println!("Value: {}", bestOne.get_end_time());
+    println!("Value: {}", best_one.get_end_time());
     Ok(())
 }
