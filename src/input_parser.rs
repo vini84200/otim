@@ -23,6 +23,6 @@ impl InputParser {
     }
 
     pub fn get_values(self) -> Vec<Size> {
-        return self.sizes;
+        self.sizes
     }
 }

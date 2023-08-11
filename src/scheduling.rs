@@ -125,7 +125,7 @@ impl Display for Scheduling {
         for _ in 0..=line_size {
             write!(f, "=")?;
         }
-        write!(f, "\n")?;
+        writeln!(f)?;
         for (start, duration) in &self.allocations {
             // let end = start.to_owned() as i32 + duration;
             for _ in 0..start.to_owned() {
@@ -134,10 +134,10 @@ impl Display for Scheduling {
             for _ in 0..duration.to_owned() {
                 write!(f, "#")?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
-        write!(f, "]\n")
+        writeln!(f, "]")
     }
 }
 
