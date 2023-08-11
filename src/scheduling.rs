@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt::Display};
 
 pub type Size = i32;
 
@@ -106,6 +106,41 @@ impl From<Vec<Size>> for Scheduling {
     }
 }
 
+impl From<Vec<&Size>> for Scheduling {
+    fn from(value: Vec<&Size>) -> Self {
+        let max_size: i32 = value.iter().map(|a| a.to_owned()).sum();
+        let mut s = Scheduling::new(max_size as usize);
+        value.iter().for_each(|v| {
+            s.add(v);
+        });
+
+        s
+    }
+}
+
+impl Display for Scheduling {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let line_size = self.get_end_time();
+        write!(f, "\n Solução {} = [\n", line_size)?;
+        for _ in 0..=line_size {
+            write!(f, "=")?;
+        }
+        write!(f, "\n")?;
+        for (start, duration) in &self.allocations {
+            // let end = start.to_owned() as i32 + duration;
+            for _ in 0..start.to_owned() {
+                write!(f, " ")?;
+            }
+            for _ in 0..duration.to_owned() {
+                write!(f, "#")?;
+            }
+            write!(f, "\n")?;
+        }
+
+        write!(f, "]\n")
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -152,4 +187,3 @@ mod test {
         assert_eq!(sched.allocations, allocation_truth)
     }
 }
-
