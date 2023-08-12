@@ -1,12 +1,14 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
+use highs_solver::HighsSolver;
 use simulated_annealing::SimulatedAnnealing;
 
 use crate::{input_parser::InputParser, scheduling::Scheduling};
 
 //use crate::scheduling_lean::SchedLean;
 
+mod highs_solver;
 mod input_parser;
 mod scheduling;
 mod simulated_annealing;
@@ -26,7 +28,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    SimulatedAnnealing {
+    SA {
         #[arg(short, long, value_name = "Temperatura", default_value_t = 200f64)]
         temperatura_inicial: f64,
 
@@ -38,7 +40,14 @@ enum Commands {
         #[arg(long, default_value_t = 100)]
         itermaxmetropoles: usize,
     },
-    Highs,
+    IP {
+        #[arg(short, long, default_value_t = 10)]
+        max_iterations: usize,
+        #[arg(short, long)]
+        verbose: bool,
+        #[arg(short='t', long, default_value_t = 60*60)]
+        max_time: i32,
+    },
 }
 
 fn main() {
@@ -51,7 +60,7 @@ fn main() {
     // let parser = InputParser::from_stdin();
     let values = parser.get_values();
     match &cli.command {
-        Commands::SimulatedAnnealing {
+        Commands::SA {
             temperatura_inicial,
             resfriamento,
             itermaxmetropoles,
@@ -63,7 +72,17 @@ fn main() {
             sim_anealing.set_itermaxmetropoles(*itermaxmetropoles);
             sim_anealing.run();
         }
-        Commands::Highs => todo!(),
+        Commands::IP {
+            verbose,
+            max_iterations,
+            max_time,
+        } => {
+            let mut solver = HighsSolver::new(values);
+            solver.setMaxIt(*max_iterations);
+            solver.setVerbose(*verbose);
+            solver.setMaxTime(*max_time);
+            solver.run();
+        }
     }
 
     //algoritmo de metrópolis de metrópolis em ordem aleatória - inerente a vizinhança
