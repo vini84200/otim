@@ -67,7 +67,7 @@ impl HighsSolver {
         let mut y = Vec::new();
         for i in 0..n {
             let mut yi = Vec::new();
-            for j in 0..n {
+            for j in 0..i {
                 yi.push(vars.add(variable().binary()));
             }
             y.push(yi);
@@ -81,7 +81,7 @@ impl HighsSolver {
             // m precisa ser maior que a terminação de todas as tarefas
             problem.add_constraint(m - si - pi >> 0);
 
-            for j in 0..n {
+            for j in 0..i {
                 if i == j {
                     continue;
                 }
@@ -99,15 +99,15 @@ impl HighsSolver {
         let start_solve = Instant::now();
         println!("Started solving...");
 
-        problem.set_parameter("maxIt", self.maxIt.to_string().as_str());
-        if self.verbose {
-            problem.set_parameter("sLog", "1");
-        } else {
-            problem.set_parameter("sLog", "0");
-        }
+        // problem.set_parameter("maxIt", self.maxIt.to_string().as_str());
+        // if self.verbose {
+        //     problem.set_parameter("sLog", "1");
+        // } else {
+        //     problem.set_parameter("sLog", "0");
+        // }
 
-        problem.set_parameter("sec", self.maxTime.to_string().as_str());
-        problem.set_parameter("ratio", "0.02");
+        // problem.set_parameter("sec", self.maxTime.to_string().as_str());
+        // problem.set_parameter("ratio", "0.02");
 
         match problem.solve() {
             Ok(solution) => {
