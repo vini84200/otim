@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display};
+use std::fmt::Display;
 
 pub type Size = i32;
 
@@ -7,23 +7,23 @@ pub struct Scheduling {
     collisions: Vec<Size>,
     end_time: usize,
     max_size: usize,
-    allocations: BTreeMap<usize, Size>,
+    solution_vec: Vec<(usize, Size)>,
 }
 
 impl Scheduling {
-    pub fn new(max_size: usize) -> Scheduling {
+    pub fn new(max_size: usize, entries: usize) -> Scheduling {
         Scheduling {
             collisions: vec![Size::MAX; max_size],
-            allocations: BTreeMap::new(),
+            solution_vec: Vec::with_capacity(entries),
             end_time: 0,
             max_size,
         }
     }
 
     pub fn verify(&self) -> bool {
-        for (start_block, size_first) in &self.allocations {
+        for (start_block, size_first) in &self.solution_vec {
             let mut found_eq = false;
-            for (start_other, size_other) in &self.allocations {
+            for (start_other, size_other) in &self.solution_vec {
                 if start_other == start_block && size_other == size_first && !found_eq {
                     found_eq = true;
                     continue;
@@ -43,13 +43,10 @@ impl Scheduling {
     }
 
     fn insert_at(&mut self, pos: usize, size: Size) {
-        if self.allocations.contains_key(&pos) {
-            panic!("Tried to add to a position that already contains a task!");
-        }
         for i in 0..size as usize {
             self.collisions[i + pos] = (i + 1) as i32
         }
-        self.allocations.insert(pos, size);
+        self.solution_vec.push((pos, size));
         let end_time = pos + size as usize;
         if end_time > self.end_time {
             self.end_time = end_time;
@@ -91,12 +88,16 @@ impl Scheduling {
     pub fn get_trivial_time(&self) -> usize {
         self.max_size
     }
+	pub fn get_solution_vec(&self) -> Vec<(usize, Size)>{
+		self.solution_vec.to_owned()
+	}
 }
 
 impl From<Vec<Size>> for Scheduling {
     fn from(value: Vec<Size>) -> Self {
         let max_size = value.iter().sum::<i32>() as usize;
-        let mut s = Scheduling::new(max_size);
+		let entries = value.len();
+        let mut s = Scheduling::new(max_size, entries);
         value.iter().for_each(|v| _ = s.add(v));
         s
     }
@@ -105,7 +106,8 @@ impl From<Vec<Size>> for Scheduling {
 impl From<Vec<&Size>> for Scheduling {
     fn from(value: Vec<&Size>) -> Self {
         let max_size = value.iter().fold(0, |acc, v| acc + *v) as usize;
-        let mut s = Scheduling::new(max_size);
+		let entries = value.len();
+        let mut s = Scheduling::new(max_size, entries);
         value.iter().for_each(|v| _ = s.add(v));
         s
     }
@@ -119,7 +121,7 @@ impl Display for Scheduling {
             write!(f, "=")?;
         }
         writeln!(f)?;
-        for (start, duration) in &self.allocations {
+        for (start, duration) in &self.solution_vec {
             // let end = start.to_owned() as i32 + duration;
             for _ in 0..start.to_owned() {
                 write!(f, " ")?;
@@ -140,14 +142,14 @@ mod test {
 
     #[test]
     fn test_empty() {
-        let s = Scheduling::new(10);
+        let s = Scheduling::new(10,0);
         assert!(s.verify());
         assert_eq!(s.end_time, 0);
     }
 
     #[test]
     fn finds_not_valid() {
-        let mut s = Scheduling::new(10);
+        let mut s = Scheduling::new(10, 2);
         s.insert_at(3, 2);
         s.insert_at(4, 5);
         assert!(!s.verify());
@@ -156,7 +158,7 @@ mod test {
 
     #[test]
     fn trivial() {
-        let mut s = Scheduling::new(10);
+        let mut s = Scheduling::new(10, 2);
         s.insert_at(0, 3);
         s.insert_at(3, 5);
         assert!(s.verify());
@@ -169,14 +171,17 @@ mod test {
         let sched = Scheduling::from(values);
         assert_eq!(sched.end_time, 11);
         assert!(sched.verify());
-        let mut allocation_truth = BTreeMap::new();
-        allocation_truth.insert(0, 8);
-        allocation_truth.insert(1, 1);
-        allocation_truth.insert(2, 2);
-        allocation_truth.insert(3, 1);
-        allocation_truth.insert(4, 1);
-        allocation_truth.insert(5, 5);
-        allocation_truth.insert(8, 3);
-        assert_eq!(sched.allocations, allocation_truth)
+		let mut solution_vec = sched.get_solution_vec();
+		solution_vec.sort_by(|(a, _), (b, _)| a.cmp(b));
+        let mut allocation_truth = Vec::new();
+        allocation_truth.push((0, 8));
+        allocation_truth.push((1, 1));
+        allocation_truth.push((2, 2));
+        allocation_truth.push((3, 1));
+        allocation_truth.push((4, 1));
+        allocation_truth.push((5, 5));
+        allocation_truth.push((8, 3));
+
+        assert_eq!(solution_vec, allocation_truth)
     }
 }
