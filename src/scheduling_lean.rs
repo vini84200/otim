@@ -1,6 +1,4 @@
-use std::{ptr, ops::Add};
-
-pub type Size = u8;
+pub type Size = i32;
 
 pub struct SchedLean {
     collisions: Vec<Size>,
@@ -28,7 +26,7 @@ impl SchedLean{
 
     fn insert_at(&mut self, pos: usize, size: Size) {
         for i in 0..size as usize {
-            self.collisions[i + pos] = (i + 1) as u8 
+            self.collisions[i + pos] = (i + 1) as Size 
         }
         let end_time = pos + size as usize;
         if end_time > self.end_time {
