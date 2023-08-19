@@ -4,6 +4,8 @@ use crate::scheduling::Size;
 use crate::Scheduling;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
+use cpu_time::ProcessTime;
+
 
 const ITERSTOCOOL: usize = 100;
 const ITERMAXMETROPOLES: usize = 100;
@@ -76,6 +78,7 @@ impl SimulatedAnnealing {
 
     pub fn run(&mut self, seed: Option<u64> ) {
         let now = Instant::now();
+        let start = ProcessTime::now();
         let seed: u64 = match seed {
             Some(val) => val,
             None => self.rng.gen()
@@ -116,7 +119,9 @@ impl SimulatedAnnealing {
             self.temperatura = self.temperatura * self.resfriamento;
         }
         let duration = now.elapsed();
-        println!("Tempo {:?}", duration);
+        let cpu_time = start.elapsed();
+        println!("Tempo real {:?}", duration);
+        println!("Tempo CPU {:?}", cpu_time);
 
         println!("Final one: {}", best_global);
         println!("Final one: {:?}", best_solution_in);

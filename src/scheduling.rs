@@ -218,12 +218,13 @@ mod test {
 
     }
 
+    #[test]
     fn test_print_sched2() {
         let mut s = Scheduling::new(10, 2);
         s.insert_at(1, 2);
         s.insert_at(3, 2);
 
-        let expected = "\n Solução 9 = [\n\
+        let expected = "\n Solução 5 = [\n\
                         pi \t si\n\
                         ==========\n\
                         2 \t 1\n\
