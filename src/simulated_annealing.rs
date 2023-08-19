@@ -2,7 +2,8 @@ use std::time::Instant;
 
 use crate::scheduling::Size;
 use crate::Scheduling;
-use rand::Rng;
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
 
 const ITERSTOCOOL: usize = 100;
 const ITERMAXMETROPOLES: usize = 100;
@@ -15,16 +16,7 @@ pub struct SimulatedAnnealing {
     itermaxmetropoles: usize,
     resfriamento: f64,
     result: Option<Vec<Size>>,
-}
-fn gen_vec_n_shuffle(v_in: &Vec<i32>, n: usize) -> Vec<i32> {
-    let mut v = v_in.clone();
-    let mut rng = rand::thread_rng();
-    let last_indice = v.len() - 1;
-    for offset in 0..n {
-        let indice = rng.gen_range(0..=last_indice);
-        v.swap(indice, last_indice - offset);
-    }
-    v
+        rng: ChaCha8Rng
 }
 
 impl SimulatedAnnealing {
@@ -36,7 +28,18 @@ impl SimulatedAnnealing {
             itermaxmetropoles: ITERMAXMETROPOLES,
             resfriamento: 0.85f64,
             result: None,
+            rng: ChaCha8Rng::from_entropy()
         }
+    }
+
+    fn gen_vec_n_shuffle(&mut self, v_in: &Vec<i32>, n: usize) -> Vec<i32> {
+        let mut v = v_in.clone();
+        let last_indice = v.len() - 1;
+        for offset in 0..n {
+            let indice = self.rng.gen_range(0..=last_indice);
+            v.swap(indice, last_indice - offset);
+        }
+        v
     }
 
     pub fn set_iterstocool(&mut self, val: usize) {
@@ -51,11 +54,10 @@ impl SimulatedAnnealing {
         self.resfriamento = val;
     }
 
-    fn metropoles(&self, mut solution: Vec<Size>) -> (usize, Vec<Size>) {
-        let mut rng = rand::thread_rng();
+    fn metropoles(&mut self, mut solution: Vec<Size>) -> (usize, Vec<Size>) {
         let mut best_one = Scheduling::from(solution.clone()).get_end_time();
         for _ in 0..self.itermaxmetropoles {
-            let testing_solution = gen_vec_n_shuffle(&solution, 5);
+            let testing_solution = self.gen_vec_n_shuffle(&solution, 2);
             let tes_val = Scheduling::from(testing_solution.clone()).get_end_time();
             let delta = tes_val as i32 - best_one as i32;
             if delta <= 0 {
@@ -63,7 +65,7 @@ impl SimulatedAnnealing {
                 solution = testing_solution;
             } else {
                 let boltzman = std::f64::consts::E.powf(-delta as f64 / self.temperatura);
-                if rng.gen::<f64>() < boltzman {
+                if self.rng.gen::<f64>() < boltzman {
                     best_one = tes_val;
                     solution = testing_solution;
                 }
@@ -72,8 +74,23 @@ impl SimulatedAnnealing {
         (best_one, solution)
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self, seed: Option<u64> ) {
         let now = Instant::now();
+        let seed: u64 = match seed {
+            Some(val) => val,
+            None => self.rng.gen()
+        };
+        println!("RNG seed: {}", seed);
+        self.rng = ChaCha8Rng::seed_from_u64(seed);
+        println!("RNG: {:?}", self.rng);
+        println!("RNG seed used: {:?}", self.rng.get_seed());
+        println!("Temperatura inicial: {}", self.temperatura);
+        println!("Iteracoes para resfriamento: {}", self.iterstocool);
+        println!("Iteracoes para metropoles: {}", self.itermaxmetropoles);
+        println!("Resfriamento: {}", self.resfriamento);
+        println!("Tamanho da instancia: {}", self.values.len());
+
+
 
         let mut best_solution_in = self.values.clone();
         best_solution_in.sort_by(|a, b| b.cmp(a));
@@ -103,6 +120,7 @@ impl SimulatedAnnealing {
 
         println!("Final one: {}", best_global);
         println!("Final one: {:?}", best_solution_in);
+        println!("Final solution: {}", Scheduling::from(best_solution_in.clone()).get_sol());
         self.result = Some(best_solution_in);
     }
 }
