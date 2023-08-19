@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.3.21", features = ["derive"] }
-good_lp = { version = "1.4.1", default-features = false }
+good_lp = { version = "1.4.1" }#, features = [""], default-features = false }
 itertools = "0.11.0"
-rand = "0.8.5"
+rand = { version = "0.8.5" }
+rand_chacha = "0.3.1"
 rayon = "1.7.0"
+cpu-time = "1.0.0"

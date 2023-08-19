@@ -39,6 +39,9 @@ enum Commands {
         iterstocool: usize,
         #[arg(long, default_value_t = 100)]
         itermaxmetropoles: usize,
+
+        #[arg(short, long, value_name = "seed")]
+        seed: Option<u64>,
     },
     IP {
         #[arg(short, long, default_value_t = 10)]
@@ -53,6 +56,7 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
     let parser = if let Some(file_path) = cli.input_file {
+        println!("Input file: {:?}", file_path);
         InputParser::from_file(file_path)
     } else {
         InputParser::from_stdin()
@@ -65,12 +69,13 @@ fn main() {
             resfriamento,
             itermaxmetropoles,
             iterstocool,
+            seed
         } => {
             let mut sim_anealing = SimulatedAnnealing::new(values, *temperatura_inicial);
             sim_anealing.set_resfriamento(*resfriamento);
             sim_anealing.set_iterstocool(*iterstocool);
             sim_anealing.set_itermaxmetropoles(*itermaxmetropoles);
-            sim_anealing.run();
+            sim_anealing.run(*seed);
         }
         Commands::IP {
             verbose,

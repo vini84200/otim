@@ -91,6 +91,23 @@ impl Scheduling {
 	pub fn get_solution_vec(&self) -> Vec<(usize, Size)>{
 		self.solution_vec.to_owned()
 	}
+
+    pub fn get_sol(&self) -> String {
+        let mut s = String::new();
+        s.push_str("\n Solução ");
+        s.push_str(&self.get_end_time().to_string());
+        s.push_str(" = [\n");
+        s.push_str("pi \t si\n");
+        s.push_str("==========\n");
+        for (start, duration) in &self.solution_vec {
+            s.push_str(&duration.to_string());
+            s.push_str(" \t ");
+            s.push_str(&start.to_string());
+            s.push_str("\n");
+        }
+        s.push_str("]");
+        s
+    }
 }
 
 impl From<Vec<Size>> for Scheduling {
@@ -183,5 +200,37 @@ mod test {
         allocation_truth.push((8, 3));
 
         assert_eq!(solution_vec, allocation_truth)
+    }
+
+    #[test]
+    fn test_print_sched() {
+        let mut s = Scheduling::new(10, 2);
+        s.insert_at(3, 2);
+        s.insert_at(4, 5);
+
+        let expected = "\n Solução 9 = [\n\
+                        pi \t si\n\
+                        ==========\n\
+                        2 \t 3\n\
+                        5 \t 4\n\
+                        ]";
+        assert_eq!(s.get_sol(), expected.to_string());
+
+    }
+
+    #[test]
+    fn test_print_sched2() {
+        let mut s = Scheduling::new(10, 2);
+        s.insert_at(1, 2);
+        s.insert_at(3, 2);
+
+        let expected = "\n Solução 5 = [\n\
+                        pi \t si\n\
+                        ==========\n\
+                        2 \t 1\n\
+                        2 \t 3\n\
+                        ]";
+        assert_eq!(s.get_sol(), expected.to_string());
+
     }
 }
