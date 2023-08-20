@@ -1,4 +1,6 @@
 /target
+generateRuns/target
+
 
 *.zip
 scripts/logs
